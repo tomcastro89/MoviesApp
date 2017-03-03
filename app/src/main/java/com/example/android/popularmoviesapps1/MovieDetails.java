@@ -6,6 +6,9 @@ package com.example.android.popularmoviesapps1;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -51,6 +54,24 @@ public class MovieDetails extends AppCompatActivity {
                 mOverview.setText(movieInformation[4]);
                 mReleaseDate.setText(movieInformation[5]);
             }
+        }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.movie_details_favorite_action, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_favorite:
+                //TODO
+                item.setIcon(R.drawable.ic_favorite_border_black_24dp);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 }
