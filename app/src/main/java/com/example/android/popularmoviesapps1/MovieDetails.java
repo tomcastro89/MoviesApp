@@ -9,10 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import java.net.URL;
 
 public class MovieDetails extends AppCompatActivity {
 
@@ -22,6 +25,8 @@ public class MovieDetails extends AppCompatActivity {
     private TextView mPopularity;
     private TextView mOverview;
     private TextView mReleaseDate;
+
+    private String MOVIE_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,19 +45,17 @@ public class MovieDetails extends AppCompatActivity {
         Intent intentThatStartedThisActivity = getIntent();
 
         if (intentThatStartedThisActivity != null) {
-            if (intentThatStartedThisActivity.hasExtra(Intent.EXTRA_TEXT)) {
+            if (intentThatStartedThisActivity.hasExtra("MovieData")) {
 
-                String mMovieDataString = intentThatStartedThisActivity.getStringExtra(Intent.EXTRA_TEXT);
+                MovieData movieData = (MovieData) intentThatStartedThisActivity.getSerializableExtra("MovieData");
 
-                String[] movieInformation = mMovieDataString.split(";X&;");
-                //Should look like this: "TITLE;X&;IMG_URL;X&;RATING;X&;POPULARITY;X&;OVERVIEW;X&;RELEASEDATE
-
-                mOriginalTitle.setText(movieInformation[0]);
-                Picasso.with(getApplicationContext()).load(movieInformation[1]).into(mMoviePoster);
-                mRating.setText(movieInformation[2]);
-                mPopularity.setText(movieInformation[3]);
-                mOverview.setText(movieInformation[4]);
-                mReleaseDate.setText(movieInformation[5]);
+                mOriginalTitle.setText(movieData.getMovieOriginalTitle());
+                Picasso.with(getApplicationContext()).load(movieData.getMovieImageURL()).into(mMoviePoster);
+                mRating.setText(Double.toString(movieData.getMovieRating()));
+                mPopularity.setText(Double.toString(movieData.getMoviePopularity()));
+                mOverview.setText(movieData.getMovieOverview());
+                mReleaseDate.setText(movieData.getMovieReleaseDate());
+                MOVIE_ID = movieData.getMovieID();
             }
         }
     }
@@ -68,10 +71,18 @@ public class MovieDetails extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_favorite:
                 //TODO
-                item.setIcon(R.drawable.ic_favorite_border_black_24dp);
+                item.setIcon(R.drawable.ic_favorite_black_24dp);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void onClickReviews(View view) {
+        //TODO
+    }
+
+    public void onClickTrailer(View view) {
+        //TODO
     }
 }

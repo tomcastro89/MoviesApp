@@ -3,10 +3,14 @@
  */
 package com.example.android.popularmoviesapps1;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This Class provides an Object that represents a Movie and all the relevant information
  */
-public class MovieData {
+public class MovieData implements Serializable{
 
     private String movieImageURL;
     private double movieRating;
@@ -14,6 +18,9 @@ public class MovieData {
     private String movieOverview;
     private String movieOriginalTitle;
     private String movieReleaseDate;
+    private String movieID;
+    private Map<Integer,ReviewData> reviews = new HashMap<>();
+    private Map<Integer,VideoData> videos = new HashMap<>();
 
     public MovieData(
             String movieImageURL,
@@ -21,7 +28,10 @@ public class MovieData {
             double moviePopularity,
             String movieOverview,
             String movieOriginalTitle,
-            String movieReleaseDate){
+            String movieReleaseDate,
+            String movieID,
+            Map reviews,
+            Map videos){
 
         this.movieImageURL = movieImageURL;
         this.movieRating = movieRating;
@@ -29,6 +39,9 @@ public class MovieData {
         this.movieOverview = movieOverview;
         this.movieOriginalTitle = movieOriginalTitle;
         this.movieReleaseDate = movieReleaseDate;
+        this.movieID = movieID;
+        this.reviews = reviews;
+        this.videos = videos;
     }
 
     public void setMovieImageURL(String movieImage){
@@ -55,6 +68,10 @@ public class MovieData {
         this.movieReleaseDate = movieReleaseDate;
     }
 
+    public void setMovieID(String movieID) {
+        this.movieID = movieID;
+    }
+
     public String getMovieImageURL() {
         return movieImageURL;
     }
@@ -78,4 +95,6 @@ public class MovieData {
     public String getMovieReleaseDate() {
         return movieReleaseDate;
     }
+
+    public String getMovieID() {return movieID;}
 }

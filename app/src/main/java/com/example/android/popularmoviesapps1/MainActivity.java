@@ -14,8 +14,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.ListItemClickListener {
 
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         new FetchMovieDataTask().execute(rankingOption);
     }
 
-    public class FetchMovieDataTask extends AsyncTask<String, Void, ArrayList<MovieData>> {
+    public class FetchMovieDataTask extends AsyncTask<String, Void, Map<String,MovieData>> {
 
         @Override
         protected void onPreExecute() {
@@ -58,14 +60,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         }
 
         @Override
-        protected ArrayList<MovieData> doInBackground(String... params) {
+        protected Map<String,MovieData> doInBackground(String... params) {
 
             if (params.length == 0) {
                 return null;
             }
 
             String rankingOption = params[0];
-            URL movieRequestUrl = NetworkUtils.buildUrl(rankingOption);
+            URL movieRequestUrl = NetworkUtils.buildUrl(rankingOption,"");
 
             try {
                 String jsonMovieDataResponse = NetworkUtils
@@ -80,11 +82,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         }
 
         @Override
-        protected void onPostExecute(ArrayList<MovieData> movieDataArrayList) {
+        protected void onPostExecute(Map<String,MovieData> movieDataMap) {
             mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if (movieDataArrayList != null) {
+            if (movieDataMap != null) {
                 showMovieDataView();
-                mMoviesAdapter.setMovieDataList(movieDataArrayList);
+                mMoviesAdapter.setMovieDataList(movieDataMap);
             } else {
                 showErrorMessage();
             }
@@ -132,32 +134,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         Context context = getApplicationContext();
         Class destinationClass = MovieDetails.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
-        String movieDataString = generateMovieDataString(mMoviesAdapter.getMovieDataList().get(clickedItemIndex));
-        intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT,movieDataString);
+        Map<String,MovieData> movieDataMap = mMoviesAdapter.getMovieDataMap();
+        String[] keySet =  movieDataMap.keySet().toArray(new String[movieDataMap.size()]);
+        intentToStartDetailActivity.putExtra("MovieData",movieDataMap.get(keySet[clickedItemIndex]));
         startActivity(intentToStartDetailActivity);
-    }
-
-    /**
-     * This method creates a String out of a MovieData - Object that represents
-     * all movie information separated by an unique separator
-     *
-     * @param movieData The MovieData- Object
-     * @return A String containing all Movie information seperated by an unique separator
-     */
-    private String generateMovieDataString(MovieData movieData) {
-        StringBuilder builder = new StringBuilder();
-        String uniqueSeparator = ";X&;";
-        builder.append(movieData.getMovieOriginalTitle())
-                .append(uniqueSeparator)
-                .append(movieData.getMovieImageURL())
-                .append(uniqueSeparator)
-                .append(movieData.getMovieRating())
-                .append(uniqueSeparator)
-                .append(movieData.getMoviePopularity())
-                .append(uniqueSeparator)
-                .append(movieData.getMovieOverview())
-                .append(uniqueSeparator)
-                .append(movieData.getMovieReleaseDate());
-        return builder.toString();
     }
 }

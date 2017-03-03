@@ -35,32 +35,65 @@ public final class NetworkUtils {
 
     private static final String THEMOVIEDB_ORG_POPULAR = "http://api.themoviedb.org/3/movie/popular";
     private static final String THEMOVIEDB_ORG_TOP_RATED = "http://api.themoviedb.org/3/movie/top_rated";
-    private static final String THEMOVIEDB_API_KEY = "xxx";
+    private static final String THEMOVIEDB_API_KEY = "5b0b4c47c2b887158891407c0cf3ac07";
+    private static final String THEMOVIEDB_ORG_PREFIX = "http://api.themoviedb.org/3/movie/";
+    private static final String TRAILERS_POSTFIX = "/videos";
+    private static final String REVIEWS_POSTFIX = "/reviews";
 
     /**
-     * This method builds and returns the URL according to the provided rankingOption
+     * This method builds and returns the URL according to the provided selection
      *
-     * @param rankingOption "byPopularity" for movies sorted by popularity and
-     *                      "byRating" for movies sorted by rating
+     * @param selection "byPopularity" for movies sorted by popularity and
+     *                  "byRating" for movies sorted by rating
+     *                  "videos" for movie videos
+     *                  "reviews" for movie reviews
+     *
+     *  @param movieID id of the movie, only relevant for trailers and reviews selection
+     *
      * @return The corresponding URL
      */
-    public static URL buildUrl(String rankingOption) {
+    public static URL buildUrl(String selection,String movieID) {
         Uri builtUri;
 
-        if(rankingOption.equals("byPopularity")){
-            builtUri =
-                    Uri.parse(THEMOVIEDB_ORG_POPULAR)
-                            .buildUpon()
-                            .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
-                            .build();
+        switch (selection) {
+            case "byPopularity":
+                builtUri =
+                        Uri.parse(THEMOVIEDB_ORG_POPULAR)
+                                .buildUpon()
+                                .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
+                                .build();
+                break;
+            case "byRating":
+                builtUri =
+                        Uri.parse(THEMOVIEDB_ORG_TOP_RATED)
+                                .buildUpon()
+                                .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
+                                .build();
+                break;
 
-        }else{
-            builtUri =
-                    Uri.parse(THEMOVIEDB_ORG_TOP_RATED)
-                            .buildUpon()
-                            .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
-                             .build();
+            case "videos":
+                builtUri =
+                        Uri.parse(THEMOVIEDB_ORG_PREFIX
+                                +movieID
+                                +TRAILERS_POSTFIX)
+                                .buildUpon()
+                                .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
+                                .build();
+                break;
+            case "reviews":
+                builtUri =
+                        Uri.parse(THEMOVIEDB_ORG_PREFIX
+                                 +movieID
+                                 +REVIEWS_POSTFIX)
+                                .buildUpon()
+                                .appendQueryParameter("api_key",THEMOVIEDB_API_KEY)
+                                .build();
+                break;
+            default:
+                Log.e(TAG, "Building URI with selection " + selection + " failed.\nCaused by: Unsupported selection");
+                return null;
         }
+
 
         URL url = null;
         try {

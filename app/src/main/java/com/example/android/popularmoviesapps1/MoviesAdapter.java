@@ -12,13 +12,13 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
+import java.util.Map;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MovieViewHolder>{
 
 
     private ListItemClickListener mListItemClickListener;
-    private ArrayList<MovieData> mMovieDataList;
+    private Map<String,MovieData> mMovieDataMap;
     private Context mContext;
 
 
@@ -45,14 +45,15 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MovieViewH
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieData movieData = mMovieDataList.get(position);
+        String[] keySet =  mMovieDataMap.keySet().toArray(new String[mMovieDataMap.size()]);
+        MovieData movieData = mMovieDataMap.get(keySet[position]);
         String movieImageUrl = movieData.getMovieImageURL();
         Picasso.with(mContext).load(movieImageUrl).into(holder.movieImageView);
     }
 
     @Override
     public int getItemCount() {
-        return mMovieDataList==null ? 0 : mMovieDataList.size();
+        return mMovieDataMap==null ? 0 : mMovieDataMap.size();
     }
 
     class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -73,12 +74,12 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MovieViewH
         }
     }
 
-    public void setMovieDataList(ArrayList<MovieData> movieDataList) {
-        this.mMovieDataList = movieDataList;
+    public void setMovieDataList(Map<String,MovieData> movieDataMap) {
+        this.mMovieDataMap = movieDataMap;
         notifyDataSetChanged();
     }
 
-    public ArrayList<MovieData> getMovieDataList() {
-        return mMovieDataList;
+    public Map<String,MovieData> getMovieDataMap() {
+        return mMovieDataMap;
     }
 }

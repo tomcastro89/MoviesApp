@@ -18,18 +18,27 @@
  */
 package com.example.android.popularmoviesapps1;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 public final class OpenMovieDataJsonUtils {
 
+    private static final String TAG = OpenMovieDataJsonUtils.class.getSimpleName();
+
     public static String IMAGE_TMDB_ORG_T_P = "http://image.tmdb.org/t/p/";
     public static String POSTER_SIZE_KEY = "w185";
+    private static String OWM_MESSAGE_CODE = "cod";
+    private static String OWM_LIST = "results";
 
     /**
      * This method gets a JSON - String, extracts the relevant information
@@ -45,11 +54,8 @@ public final class OpenMovieDataJsonUtils {
      * @return An ArrayList of MovieData - Objects
      * @throws JSONException
      */
-    public static ArrayList<MovieData> getMovieDataFromJson(String movieDataJsonString)
+    public static Map<String,MovieData> getMovieDataFromJson(String movieDataJsonString)
             throws JSONException {
-
-        final String OWM_MESSAGE_CODE = "cod";
-        final String OWM_LIST = "results";
 
         JSONObject movieJson = new JSONObject(movieDataJsonString);
 
@@ -70,7 +76,7 @@ public final class OpenMovieDataJsonUtils {
 
         JSONArray movieArray = movieJson.getJSONArray(OWM_LIST);
 
-        ArrayList<MovieData> parsedMovieData = new ArrayList<>();
+        Map<String,MovieData> parsedMovieData = new LinkedHashMap<>();
 
         for (int i = 0; i < movieArray.length(); i++) {
 
@@ -86,6 +92,9 @@ public final class OpenMovieDataJsonUtils {
             String movieOriginalTitle = movieInformation.getString("original_title");
             double moviePopularity = movieInformation.getDouble("popularity");
             double movieRating = movieInformation.getDouble("vote_average");
+            String movieID = movieInformation.getString("id");
+            Map<String,ReviewData> reviews = parseReviewJSON(movieID);
+            Map<String,VideoData> videos = parseVideoJSON(movieID);
 
             MovieData movieData = new MovieData(
                     movieImageURL,
@@ -93,11 +102,130 @@ public final class OpenMovieDataJsonUtils {
                     moviePopularity,
                     movieOverview,
                     movieOriginalTitle,
-                    movieReleaseDate);
+                    movieReleaseDate,
+                    movieID,
+                    reviews,
+                    videos);
 
-            parsedMovieData.add(movieData);
+            parsedMovieData.put(movieID,movieData);
         }
 
         return parsedMovieData;
+    }
+
+    private static Map<String,VideoData> parseVideoJSON(String movieID) throws JSONException {
+        URL url = NetworkUtils.buildUrl("videos",movieID);
+        Map<String,VideoData> videos = new LinkedHashMap<>();
+
+        String jsonVideoDataResponse;
+        try {
+            jsonVideoDataResponse = NetworkUtils
+                    .getResponseFromHttpUrl(url);
+        } catch (Exception e) {
+            Log.e(TAG, "Could not gather videos from " + url +"\nCaused by: " + e);
+            return videos;
+        }
+
+        JSONObject videoJson = new JSONObject(jsonVideoDataResponse);
+
+        /* Is there an error? */
+        if (videoJson.has(OWM_MESSAGE_CODE)) {
+            int errorCode = videoJson.getInt(OWM_MESSAGE_CODE);
+
+            switch (errorCode) {
+                case HttpURLConnection.HTTP_OK:
+                    break;
+                case HttpURLConnection.HTTP_NOT_FOUND:
+                    return null;
+                default:
+                    /* Server probably down */
+                    return null;
+            }
+        }
+
+        JSONArray videoArray = videoJson.getJSONArray(OWM_LIST);
+
+        for (int i = 0; i < videoArray.length(); i++) {
+
+            JSONObject videoInformation = videoArray.getJSONObject(i);
+
+            String videoID =  videoInformation.getString("id");
+            String iso_639_1 = videoInformation.getString("iso_639_1");
+            String iso_3166_1 = videoInformation.getString("iso_3166_1");
+            String key = videoInformation.getString("key");
+            String name = videoInformation.getString("name");
+            String site = videoInformation.getString("site");
+            int size = videoInformation.getInt("size");
+            String type = videoInformation.getString("type");
+
+            VideoData videoData = new VideoData(
+                    videoID,
+                    iso_639_1,
+                    iso_3166_1,
+                    key,
+                    name,
+                    site,
+                    size,
+                    type
+            );
+
+            videos.put(videoID,videoData);
+        }
+
+        return videos;
+    }
+
+    private static Map<String,ReviewData> parseReviewJSON(String movieID) throws JSONException {
+        URL url = NetworkUtils.buildUrl("reviews",movieID);
+        Map<String,ReviewData> reviews = new LinkedHashMap<>();
+
+        String jsonReviewDataResponse;
+        try {
+            jsonReviewDataResponse = NetworkUtils
+                    .getResponseFromHttpUrl(url);
+        } catch (Exception e) {
+            Log.e(TAG, "Could not gather reviews from " + url +"\nCaused by: " + e);
+            return reviews;
+        }
+
+        JSONObject reviewJson = new JSONObject(jsonReviewDataResponse);
+
+        /* Is there an error? */
+        if (reviewJson.has(OWM_MESSAGE_CODE)) {
+            int errorCode = reviewJson.getInt(OWM_MESSAGE_CODE);
+
+            switch (errorCode) {
+                case HttpURLConnection.HTTP_OK:
+                    break;
+                case HttpURLConnection.HTTP_NOT_FOUND:
+                    return null;
+                default:
+                    /* Server probably down */
+                    return null;
+            }
+        }
+
+        JSONArray reviewArray = reviewJson.getJSONArray(OWM_LIST);
+
+        for (int i = 0; i < reviewArray.length(); i++) {
+
+            JSONObject reviewInformation = reviewArray.getJSONObject(i);
+
+            String reviewID =  reviewInformation.getString("id");
+            String author = reviewInformation.getString("author");
+            String content = reviewInformation.getString("content");
+            String reviewUrl = reviewInformation.getString("url");
+
+            ReviewData reviewData = new ReviewData(
+                    reviewID,
+                    author,
+                    content,
+                    reviewUrl
+                    );
+
+            reviews.put(reviewID,reviewData);
+        }
+
+        return reviews;
     }
 }
