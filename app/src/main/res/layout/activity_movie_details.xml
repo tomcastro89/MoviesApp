@@ -102,7 +102,32 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18dp"
-                android:padding="4dp"/>
+                android:paddingTop="4dp"
+                android:paddingLeft="4dp"
+                android:paddingBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/button_trailer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18dp"
+                    android:text="@string/Trailer"
+                    android:padding="4dp"
+                    android:onClick="onClickTrailer"/>
+
+                <Button
+                    android:id="@+id/button_reviews"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18dp"
+                    android:text="@string/Reviews"
+                    android:padding="4dp"
+                    android:onClick="onClickReviews"/>
+            </LinearLayout>
         </LinearLayout>
 
     </ScrollView>
