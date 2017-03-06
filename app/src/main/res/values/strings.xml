@@ -13,9 +13,9 @@
     <string name="Popularity">Popularity</string>
     <string name="Overview">Overview</string>
     <string name="ReleaseDate">Release Date</string>
-    <string name="Trailer">Trailer</string>
+    <string name="Trailers">Trailers</string>
     <string name="Reviews">Reviews</string>
     <string name="Favorite">Favorite</string>
     <string name="ShowFavorites">Show Favorites</string>
-
+    <string name="Review_Author">Author:</string>
 </resources>

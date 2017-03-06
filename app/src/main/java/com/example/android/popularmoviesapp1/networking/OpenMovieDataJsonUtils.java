@@ -16,9 +16,13 @@
  * Source: Udacity.com - Associate Android Developer Fast Track
  * Modified by: Tommaso Castrovillari
  */
-package com.example.android.popularmoviesapps1;
+package com.example.android.popularmoviesapp1.networking;
 
 import android.util.Log;
+
+import com.example.android.popularmoviesapp1.data.MovieData;
+import com.example.android.popularmoviesapp1.data.ReviewData;
+import com.example.android.popularmoviesapp1.data.VideoData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -93,8 +97,8 @@ public final class OpenMovieDataJsonUtils {
             double moviePopularity = movieInformation.getDouble("popularity");
             double movieRating = movieInformation.getDouble("vote_average");
             String movieID = movieInformation.getString("id");
-            Map<String,ReviewData> reviews = parseReviewJSON(movieID);
-            Map<String,VideoData> videos = parseVideoJSON(movieID);
+            ArrayList<ReviewData> reviews = parseReviewJSON(movieID);
+            ArrayList<VideoData> videos = parseVideoJSON(movieID);
 
             MovieData movieData = new MovieData(
                     movieImageURL,
@@ -113,9 +117,9 @@ public final class OpenMovieDataJsonUtils {
         return parsedMovieData;
     }
 
-    private static Map<String,VideoData> parseVideoJSON(String movieID) throws JSONException {
+    private static ArrayList<VideoData> parseVideoJSON(String movieID) throws JSONException {
         URL url = NetworkUtils.buildUrl("videos",movieID);
-        Map<String,VideoData> videos = new LinkedHashMap<>();
+        ArrayList<VideoData> videos = new ArrayList<>();
 
         String jsonVideoDataResponse;
         try {
@@ -169,15 +173,18 @@ public final class OpenMovieDataJsonUtils {
                     type
             );
 
-            videos.put(videoID,videoData);
+            //Just add Trailers
+            if(type.equals("Trailer")){
+                videos.add(videoData);
+            }
         }
 
         return videos;
     }
 
-    private static Map<String,ReviewData> parseReviewJSON(String movieID) throws JSONException {
+    private static ArrayList<ReviewData> parseReviewJSON(String movieID) throws JSONException {
         URL url = NetworkUtils.buildUrl("reviews",movieID);
-        Map<String,ReviewData> reviews = new LinkedHashMap<>();
+        ArrayList<ReviewData> reviews = new ArrayList<>();
 
         String jsonReviewDataResponse;
         try {
@@ -223,7 +230,7 @@ public final class OpenMovieDataJsonUtils {
                     reviewUrl
                     );
 
-            reviews.put(reviewID,reviewData);
+            reviews.add(reviewData);
         }
 
         return reviews;

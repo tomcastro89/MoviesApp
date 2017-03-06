@@ -1,7 +1,7 @@
 /*
  * Author: Tommaso Castrovillari
  */
-package com.example.android.popularmoviesapps1;
+package com.example.android.popularmoviesapp1.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.android.popularmoviesapp1.R;
+import com.example.android.popularmoviesapp1.data.MovieData;
 import com.squareup.picasso.Picasso;
 
 import java.util.Map;

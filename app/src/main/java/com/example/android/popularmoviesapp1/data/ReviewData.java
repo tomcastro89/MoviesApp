@@ -1,7 +1,7 @@
 /*
  * Author: Tommaso Castrovillari
  */
-package com.example.android.popularmoviesapps1;
+package com.example.android.popularmoviesapp1.data;
 
 import java.io.Serializable;
 

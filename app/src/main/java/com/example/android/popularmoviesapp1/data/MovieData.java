@@ -1,11 +1,10 @@
 /*
  * Author: Tommaso Castrovillari
  */
-package com.example.android.popularmoviesapps1;
+package com.example.android.popularmoviesapp1.data;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * This Class provides an Object that represents a Movie and all the relevant information
@@ -19,8 +18,9 @@ public class MovieData implements Serializable{
     private String movieOriginalTitle;
     private String movieReleaseDate;
     private String movieID;
-    private Map<Integer,ReviewData> reviews = new HashMap<>();
-    private Map<Integer,VideoData> videos = new HashMap<>();
+    private ArrayList<ReviewData> reviews = new ArrayList<>();
+    private ArrayList<VideoData> videos = new ArrayList<>();
+    private boolean isFavorite;
 
     public MovieData(
             String movieImageURL,
@@ -30,8 +30,8 @@ public class MovieData implements Serializable{
             String movieOriginalTitle,
             String movieReleaseDate,
             String movieID,
-            Map reviews,
-            Map videos){
+            ArrayList reviews,
+            ArrayList videos){
 
         this.movieImageURL = movieImageURL;
         this.movieRating = movieRating;
@@ -42,6 +42,7 @@ public class MovieData implements Serializable{
         this.movieID = movieID;
         this.reviews = reviews;
         this.videos = videos;
+        this.isFavorite = false;
     }
 
     public void setMovieImageURL(String movieImage){
@@ -72,6 +73,12 @@ public class MovieData implements Serializable{
         this.movieID = movieID;
     }
 
+    public void setVideos(ArrayList<VideoData> videos){ this.videos = videos;}
+
+    public void setReviews(ArrayList<ReviewData> reviews){ this.reviews = reviews;}
+
+    public void setIsFavorite(boolean isFavorite){this.isFavorite=isFavorite;}
+
     public String getMovieImageURL() {
         return movieImageURL;
     }
@@ -97,4 +104,10 @@ public class MovieData implements Serializable{
     }
 
     public String getMovieID() {return movieID;}
+
+    public ArrayList<VideoData> getVideos(){ return videos;}
+
+    public ArrayList<ReviewData> getReviews(){return reviews;}
+
+    public boolean isFavorite(){return isFavorite;}
 }
