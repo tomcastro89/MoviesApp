@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.android.popularmoviesapps1">
+    package="com.example.android.popularmoviesapp1">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -10,14 +10,21 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.example.android.popularmoviesapp1.activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MovieDetails"></activity>
+        <activity android:name="com.example.android.popularmoviesapp1.activities.MovieDetailsActivity" />
+        <activity android:name="com.example.android.popularmoviesapp1.activities.ReviewsActivity" />
+
+        <provider
+            android:name="com.example.android.popularmoviesapp1.data.MovieContentProvider"
+            android:authorities="com.example.android.popularmoviesapp1"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
 
 </manifest>
