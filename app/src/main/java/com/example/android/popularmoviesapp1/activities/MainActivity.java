@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,11 +28,13 @@ import com.example.android.popularmoviesapp1.data.VideoData;
 import com.example.android.popularmoviesapp1.networking.NetworkUtils;
 import com.example.android.popularmoviesapp1.networking.OpenMovieDataJsonUtils;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.ListItemClickListener {
 
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
     private ProgressBar mLoadingIndicator;
     private TextView mErrorMessageDisplay;
     private SQLiteDatabase mMovieDB;
+    private String currentMode;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -60,12 +64,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
 
         MovieDataListDBHelper dbHelper = new MovieDataListDBHelper(this);
         mMovieDB = dbHelper.getReadableDatabase();
-
-        setTitle("Movies App (sorted by Rating)");
-        loadMovieData("byRating");
     }
 
-    private void loadMovieData(String rankingOption){
+    public void loadMovieData(String rankingOption){
         showMovieDataView();
         new FetchMovieDataTask().execute(rankingOption);
     }
@@ -97,7 +98,15 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                             null,
                             MovieDataListContract.MovieDataEntry.COLUMN_MOVIE_ID);
 
-                    return getMovieMapFromCursor(cursor);
+                    //Set isFavorite status
+                    Map<String,MovieData> moviesMap = getMovieMapFromCursor(cursor);
+                    Set<String> keySet = moviesMap.keySet();
+                    for(String key : keySet){
+                        MovieData md = moviesMap.get(key);
+                        md.setIsFavorite(true);
+                    }
+
+                    return moviesMap;
 
                 }catch(Exception e){
                     Log.e(TAG, "Failed to asynchronously load data.");
@@ -111,7 +120,10 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                     String jsonMovieDataResponse = NetworkUtils
                             .getResponseFromHttpUrl(movieRequestUrl);
 
-                    return OpenMovieDataJsonUtils.getMovieDataFromJson(jsonMovieDataResponse);
+                    Map<String,MovieData> moviesMap = OpenMovieDataJsonUtils.getMovieDataFromJson(jsonMovieDataResponse);
+                    //Set favorite status for movies that are in the local database
+                    Map<String,MovieData> adjustedMoviesMap = setFavorites(moviesMap);
+                    return adjustedMoviesMap;
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -132,6 +144,35 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         }
     }
 
+    private Map<String,MovieData> setFavorites(Map<String, MovieData> moviesMap) {
+        Set<String> keySet = moviesMap.keySet();
+        MovieDataListDBHelper dbHelper = new MovieDataListDBHelper(this);
+        mMovieDB = dbHelper.getReadableDatabase();
+        for(String key : keySet){
+            Uri uri = MovieDataListContract.MovieDataEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(key).build();
+            Cursor resultCursor = getContentResolver().query(uri,new String[]{MovieDataListContract.MovieDataEntry.COLUMN_MOVIE_ID},null,null,MovieDataListContract.MovieDataEntry.COLUMN_MOVIE_ID);
+            if(resultCursor.getCount() !=0 ){
+                moviesMap.get(key).setIsFavorite(true);
+            }
+        }
+        return moviesMap;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(currentMode==null){
+            setTitle("Movies App (sorted by Rating)");
+            loadMovieData("byRating");
+            currentMode = "byRating";
+        }else{
+            if(currentMode.equals("localFavorites")){
+                loadMovieData("localFavorites");
+            }
+        }
+    }
+
     private Map<String,MovieData> getMovieMapFromCursor(Cursor cursor) {
         Map<String,MovieData> moviesMap = new LinkedHashMap<>();
 
@@ -145,16 +186,17 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
                 String releaseDate = cursor.getString(cursor.getColumnIndex("movieReleaseDate"));
                 String movieID = cursor.getString(cursor.getColumnIndex("movieID"));
 
-                ArrayList<VideoData> trailers = new ArrayList<>();
-                ArrayList<ReviewData> reviews = new ArrayList<>();
+                ArrayList trailers;
+                ArrayList reviews;
 
                 String trailersJson = cursor.getString(cursor.getColumnIndex("movieVideos"));
 
                 Gson gson = new Gson();
                 trailers = gson.fromJson(trailersJson, ArrayList.class);
-
+                trailers = transformToVideoData(trailers);
                 String reviewsJson = cursor.getString(cursor.getColumnIndex("movieReviews"));
                 reviews = gson.fromJson(reviewsJson, ArrayList.class);
+                reviews = transformToReviewData(reviews);
 
                 MovieData movieData = new MovieData(
                         imageUrl,
@@ -173,6 +215,40 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         }
         cursor.close();
         return moviesMap;
+    }
+
+    private ArrayList transformToReviewData(ArrayList reviews) {
+        ArrayList<ReviewData> parsedReviews = new ArrayList<>();
+        for(Object i : reviews){
+            LinkedTreeMap valuesMap = (LinkedTreeMap) i;
+            ReviewData reviewData = new ReviewData(
+                    (String) valuesMap.get("id"),
+                    (String) valuesMap.get("author"),
+                    (String) valuesMap.get("content"),
+                    (String) valuesMap.get("url")
+                    );
+            parsedReviews.add(reviewData);
+        }
+        return parsedReviews;
+    }
+
+    private ArrayList<VideoData> transformToVideoData(ArrayList trailers) {
+        ArrayList<VideoData> parsedTrailers = new ArrayList<>();
+        for(Object i : trailers){
+            LinkedTreeMap valuesMap = (LinkedTreeMap) i;
+            VideoData videoData = new VideoData(
+                    (String) valuesMap.get("id"),
+                    (String) valuesMap.get("iso_639_1"),
+                    (String) valuesMap.get("iso_3166_1"),
+                    (String) valuesMap.get("key"),
+                    (String) valuesMap.get("name"),
+                    (String) valuesMap.get("site"),
+                    ((Double) valuesMap.get("size")).intValue(),
+                    (String) valuesMap.get("type")
+            );
+            parsedTrailers.add(videoData);
+         }
+        return parsedTrailers;
     }
 
     private void showMovieDataView() {
@@ -199,18 +275,22 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         if (id == R.id.action_sortByPopularity) {
             setTitle("Movies App (sorted by Popularity)");
             loadMovieData("byPopularity");
+            currentMode= "byPopularity";
             return true;
         }
 
         if (id == R.id.action_sortByRating) {
             setTitle("Movies App (sorted by Rating)");
             loadMovieData("byRating");
+            currentMode = "byPopularity";
             return true;
         }
 
-        if(id == R.id.action_favorite){
+        if(id == R.id.action_showFavorites){
             setTitle("Movies App (your Favorites)");
             loadMovieData("localFavorites");
+            currentMode = "localFavorites";
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

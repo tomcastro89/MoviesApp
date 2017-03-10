@@ -38,9 +38,10 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private TextView mOverview;
     private TextView mReleaseDate;
     private ListView mTrailers;
-    private ListView mReviews;
     private MovieData mMovieData;
     private SQLiteDatabase mMovieDB;
+    private Intent mIntentThatStartedThisActivity;
+    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,12 +58,12 @@ public class MovieDetailsActivity extends AppCompatActivity {
         mTrailers = (ListView) findViewById(R.id.listview_videos);
 
 
-        Intent intentThatStartedThisActivity = getIntent();
+        mIntentThatStartedThisActivity = getIntent();
 
-        if (intentThatStartedThisActivity != null) {
-            if (intentThatStartedThisActivity.hasExtra("MovieData")) {
+        if (mIntentThatStartedThisActivity != null) {
+            if (mIntentThatStartedThisActivity.hasExtra("MovieData")) {
 
-                mMovieData = (MovieData) intentThatStartedThisActivity.getSerializableExtra("MovieData");
+                mMovieData = (MovieData) mIntentThatStartedThisActivity.getSerializableExtra("MovieData");
                 MovieDataListDBHelper dbHelper = new MovieDataListDBHelper(this);
                 mMovieDB = dbHelper.getWritableDatabase();
 
@@ -132,7 +133,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_favorite:
-                //TODO mMovieData gets lost after back action
                 if(mMovieData.isFavorite()){
                     mMovieData.setIsFavorite(false);
                     item.setIcon(R.drawable.ic_favorite_border_black_24dp);
@@ -149,7 +149,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
     }
 
     private void removeFromFavoriteDB() {
-        mMovieDB.delete(MovieDataListContract.MovieDataEntry.TABLE_NAME, MovieDataListContract.MovieDataEntry.COLUMN_MOVIE_ID + "=" + mMovieData.getMovieID(), null);
+        Uri uri = MovieDataListContract.MovieDataEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(mMovieData.getMovieID()).build();
+        getContentResolver().delete(uri, null, null);
+        if(mToast!= null){
+            mToast.cancel();
+        }
+        mToast = Toast.makeText(getBaseContext(),"Removed from Favorites",Toast.LENGTH_LONG);
+        mToast.show();
     }
 
     private void saveToFavoriteDB() {
@@ -170,7 +177,11 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Uri uri = getContentResolver().insert(MovieDataListContract.MovieDataEntry.CONTENT_URI,cv);
 
         if(uri != null){
-            Toast.makeText(getBaseContext(),uri.toString(),Toast.LENGTH_LONG).show();
+            if(mToast!= null){
+                mToast.cancel();
+            }
+            mToast = Toast.makeText(getBaseContext(),"Added to Favorites",Toast.LENGTH_SHORT);
+            mToast.show();
         }
     }
 

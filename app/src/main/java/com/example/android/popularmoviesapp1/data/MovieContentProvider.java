@@ -27,22 +27,47 @@ public class MovieContentProvider extends ContentProvider {
         //match with directory
         uriMatcher.addURI(MovieDataListContract.AUTHORITY,MovieDataListContract.PATH_MOVIE_DATA_LIST, MOVIES);
         //match with single movie
-        uriMatcher.addURI(MovieDataListContract.AUTHORITY,MovieDataListContract.PATH_MOVIE_DATA_LIST,MOVIE_WITH_ID);
+        uriMatcher.addURI(MovieDataListContract.AUTHORITY,MovieDataListContract.PATH_MOVIE_DATA_LIST + "/#",MOVIE_WITH_ID);
 
         return uriMatcher;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        final SQLiteDatabase db = mMovieDataListDBHelper.getWritableDatabase();
+
+        int match = sUriMatcher.match(uri);
+
+        int moviesDeleted;
+
+        switch (match) {
+            case MOVIE_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                moviesDeleted = db.delete(TABLE_NAME, "movieID=?", new String[]{id});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (moviesDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return moviesDeleted;
     }
 
     @Override
     public String getType(Uri uri) {
-        // TODO: Implement this to handle requests for the MIME type of the data
-        // at the given URI.
-        throw new UnsupportedOperationException("Not yet implemented");
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            case MOVIES:
+                return "vnd.android.cursor.dir" + "/" + MovieDataListContract.AUTHORITY + "/" + MovieDataListContract.PATH_MOVIE_DATA_LIST;
+            case MOVIE_WITH_ID:
+                return "vnd.android.cursor.item" + "/" + MovieDataListContract.AUTHORITY + "/" + MovieDataListContract.PATH_MOVIE_DATA_LIST;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
     }
 
     @Override
@@ -51,8 +76,7 @@ public class MovieContentProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
 
         Uri returnUri;
-        //TODO throws
-        //java.lang.UnsupportedOperationException: Unknown uri: content://com.example.android.popularmoviesapp1/MovieDataList
+
         switch(match){
             case MOVIES:
                 long id  = db.insert(TABLE_NAME,null,values);
@@ -89,6 +113,20 @@ public class MovieContentProvider extends ContentProvider {
             case MOVIES:
                 returnCursor  = db.query(TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
                 break;
+            case MOVIE_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+
+                String mSelection = "movieID=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                returnCursor =  db.query(TABLE_NAME,
+                        projection,
+                        mSelection,
+                        mSelectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: "+uri);
         }
@@ -101,7 +139,23 @@ public class MovieContentProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        int moviesUpdated;
+
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            case MOVIE_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                moviesUpdated = mMovieDataListDBHelper.getWritableDatabase().update(TABLE_NAME, values, "movieID=?", new String[]{id});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (moviesUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return moviesUpdated;
     }
 }
