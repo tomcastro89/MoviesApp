@@ -35,7 +35,7 @@ public final class NetworkUtils {
 
     private static final String THEMOVIEDB_ORG_POPULAR = "http://api.themoviedb.org/3/movie/popular";
     private static final String THEMOVIEDB_ORG_TOP_RATED = "http://api.themoviedb.org/3/movie/top_rated";
-    private static final String THEMOVIEDB_API_KEY = "5b0b4c47c2b887158891407c0cf3ac07";
+    private static final String THEMOVIEDB_API_KEY = "xxx";
     private static final String THEMOVIEDB_ORG_PREFIX = "http://api.themoviedb.org/3/movie/";
     private static final String TRAILERS_POSTFIX = "/videos";
     private static final String REVIEWS_POSTFIX = "/reviews";
