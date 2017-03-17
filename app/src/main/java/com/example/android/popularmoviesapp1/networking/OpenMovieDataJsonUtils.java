@@ -84,6 +84,13 @@ public final class OpenMovieDataJsonUtils {
 
         for (int i = 0; i < movieArray.length(); i++) {
 
+            try {
+                //Wait some time to not exceed api request limit
+                Thread.sleep(400);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             JSONObject movieInformation = movieArray.getJSONObject(i);
 
             //Generate full Movie Image URL
