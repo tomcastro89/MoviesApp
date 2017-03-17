@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
             CURRENT_MODE = "byRating";
         }else{
             if(CURRENT_MODE.equals("localFavorites")){
+                setTitle("Movies App (your Favorites)");
                 loadMovieData("localFavorites");
             }else{
                 if(CURRENT_MODE=="byPopularity"){

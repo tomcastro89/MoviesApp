@@ -86,7 +86,7 @@ public final class OpenMovieDataJsonUtils {
 
             try {
                 //Wait some time to not exceed api request limit
-                Thread.sleep(400);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
