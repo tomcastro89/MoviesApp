@@ -39,7 +39,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
     private TextView mReleaseDate;
     private ListView mTrailers;
     private MovieData mMovieData;
-    private SQLiteDatabase mMovieDB;
     private Intent mIntentThatStartedThisActivity;
     private Toast mToast;
 
@@ -65,7 +64,6 @@ public class MovieDetailsActivity extends AppCompatActivity {
 
                 mMovieData = (MovieData) mIntentThatStartedThisActivity.getSerializableExtra("MovieData");
                 MovieDataListDBHelper dbHelper = new MovieDataListDBHelper(this);
-                mMovieDB = dbHelper.getWritableDatabase();
 
                 mOriginalTitle.setText(mMovieData.getMovieOriginalTitle());
                 Picasso.with(getApplicationContext()).load(mMovieData.getMovieImageURL()).into(mMoviePoster);

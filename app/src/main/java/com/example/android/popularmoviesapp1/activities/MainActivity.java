@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
     private ProgressBar mLoadingIndicator;
     private TextView mErrorMessageDisplay;
     private SQLiteDatabase mMovieDB;
-    private String currentMode;
+    private static String CURRENT_MODE;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -64,6 +64,16 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
 
         MovieDataListDBHelper dbHelper = new MovieDataListDBHelper(this);
         mMovieDB = dbHelper.getReadableDatabase();
+
+        if(savedInstanceState != null){
+            CURRENT_MODE = savedInstanceState.getString("currentMode");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString("currentMode",CURRENT_MODE);
+        super.onSaveInstanceState(outState);
     }
 
     public void loadMovieData(String rankingOption){
@@ -162,13 +172,18 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
     @Override
     protected void onStart() {
         super.onStart();
-        if(currentMode==null){
+        if(CURRENT_MODE==null){
             setTitle("Movies App (sorted by Rating)");
             loadMovieData("byRating");
-            currentMode = "byRating";
+            CURRENT_MODE = "byRating";
         }else{
-            if(currentMode.equals("localFavorites")){
+            if(CURRENT_MODE.equals("localFavorites")){
                 loadMovieData("localFavorites");
+            }else{
+                if(CURRENT_MODE=="byPopularity"){
+                    setTitle("Movies App (sorted by Popularity)");
+                    loadMovieData("byPopularity");
+                }
             }
         }
     }
@@ -275,21 +290,21 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         if (id == R.id.action_sortByPopularity) {
             setTitle("Movies App (sorted by Popularity)");
             loadMovieData("byPopularity");
-            currentMode= "byPopularity";
+            CURRENT_MODE = "byPopularity";
             return true;
         }
 
         if (id == R.id.action_sortByRating) {
             setTitle("Movies App (sorted by Rating)");
             loadMovieData("byRating");
-            currentMode = "byPopularity";
+            CURRENT_MODE = "byRating";
             return true;
         }
 
         if(id == R.id.action_showFavorites){
             setTitle("Movies App (your Favorites)");
             loadMovieData("localFavorites");
-            currentMode = "localFavorites";
+            CURRENT_MODE = "localFavorites";
             return true;
         }
 
@@ -305,5 +320,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Lis
         String[] keySet =  movieDataMap.keySet().toArray(new String[movieDataMap.size()]);
         intentToStartDetailActivity.putExtra("MovieData",movieDataMap.get(keySet[clickedItemIndex]));
         startActivity(intentToStartDetailActivity);
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        if(mMovieDB != null){
+            mMovieDB.close();
+        }
     }
 }
